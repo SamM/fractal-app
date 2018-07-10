@@ -21,7 +21,7 @@ function createTreeFractalWindow () {
 	})
 }
 
-var right_click_template = require('./right-click-menu-template');
+//var right_click_template = require('./right-click-menu-template');
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
