@@ -7,7 +7,7 @@ function createTreeFractalWindow () {
 	treeWin = new BrowserWindow({width: 500, height: 500})
 
 	// and load the index.html of the app.
-	launcherWin.loadFile('./tree-fractal.html')
+	treeWin.loadFile('./tree-fractal.html')
 
 	// Open the DevTools.
 	//treeWin.webContents.openDevTools()
