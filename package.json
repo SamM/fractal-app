@@ -1,0 +1,34 @@
+{
+  "name": "fractal-app",
+  "version": "1.0.0",
+  "description": "A fractal image creation tool made using Electron",
+  "main": "app.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamM/fractal-app.git"
+  },
+  "keywords": [
+    "fractal",
+    "art",
+    "image",
+    "generator",
+    "electron",
+    "js",
+    "javascript"
+  ],
+  "author": "Sam Mulqueen <sammulqueen.nz@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SamM/fractal-app/issues"
+  },
+  "homepage": "https://github.com/SamM/fractal-app#readme",
+  "devDependencies": {
+    "electron": "^2.0.4"
+  },
+  "dependencies": {
+    "electron-settings": "^3.2.0"
+  }
+}
