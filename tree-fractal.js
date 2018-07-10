@@ -4,7 +4,12 @@ var settings = {
     max_iters: 5,
     spread: 0.1,
     color: '#ff0000',
-    scale: 0.9
+    scale: 0.9,
+    branches: 1,
+    angle: 0,
+    x: 0,
+    y: 0,
+    unit: 50
 };
 
 function setup() {
@@ -16,7 +21,12 @@ function draw() {
     background(255);
     translate(settings.width/2, settings.height/2);
     rotate(-PI / 2.0);
-    branch(settings.max_iters, 0, 0, 0, 50);
+    var start_angle = settings.angle * Math.PI * 2;
+    var angle;
+    for(var i = 0; i<settings.branches; i++){
+        angle = start_angle + (i * ((Math.PI*2)/settings.branches));
+        branch(settings.max_iters, settings.x, settings.y, angle, settings.unit);
+    }
 }
 
 function branch(iter, x , y, angle, scale)
@@ -30,8 +40,8 @@ function branch(iter, x , y, angle, scale)
         strokeWeight(2*(1-progress));
         line(x, y, newX, newY);
         var newScale = scale * settings.scale;
-        var angle1 = angle - settings.spread;
-        var angle2 = angle + settings.spread;
+        var angle1 = angle - (settings.spread * Math.PI);
+        var angle2 = angle + (settings.spread * Math.PI);
         branch(iter-1, newX, newY, angle1, newScale);
         branch(iter-1, newX, newY, angle2, newScale);
     }
