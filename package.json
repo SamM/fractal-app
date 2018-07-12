@@ -1,6 +1,6 @@
 {
   "name": "fractal-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A fractal image creation tool made using Electron",
   "main": "app.js",
   "scripts": {
@@ -29,6 +29,7 @@
     "electron": "^2.0.4"
   },
   "dependencies": {
-    "electron-settings": "^3.2.0"
+    "electron-settings": "^3.2.0",
+    "image-data-uri": "^1.1.1"
   }
 }

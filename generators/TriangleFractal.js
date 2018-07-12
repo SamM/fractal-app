@@ -14,9 +14,11 @@ var TriangleFractalGenerator = new Generator({
         angle: 0,
         radius: 100,
         stroke: false,
-        colors: []
+        colors: [],
+        file_name: "My Fractal"
     },
     setup: function(){
+        var generator = this;
         createCanvas(this.get('width'), this.get('height'));
         if(this.gui.constructed) this.gui.destroy();
         var params = this.gui.section('params');
@@ -28,12 +30,59 @@ var TriangleFractalGenerator = new Generator({
         params.number('radius', 1, 'width', 1);
         params.number('delete_chance', 0, 1, 0.01);
         params.number('max_iters', 1, 12, 1);
-        this.gui.onSet(function(){
+        params.string('file_name', 1, 128);
+        params.button('Save Image as PNG', function(){
+            var fileName = generator.settings.file_name;
+            var canvas = document.querySelector('.p5Canvas');
+            if(!canvas){
+                alert('There is no canvas image to save.');
+                return;
+            }
+            if(typeof savePNGImage !== 'function'){
+                throw new Error('savePNGImage.js file has not been imported');
+            }
+            savePNGImage(canvas, fileName).then(function(path){
+                alert('Successfully saved to this path:\n'+path+'\n\nPress [ Esc ] to exit...')
+            }).catch(function(){
+                alert('OH NO! There was an error when saving the image at the path you specified. You might not have permission to write here, or the directory might not exist.\nPlease try another path and/or filename when saving again.\n\nPress [ Esc ] to exit...')
+            });
+        });
+        this.onSet(function(){
             redraw();
         })
         noLoop();
         redraw();
     },
+    /*/
+    /// Fore-shadowing... 
+    ...
+    getBitSize: function(depth){
+        function solve(depth){
+            if(depth < 0) return 0;
+            return Math.pow(4, depth) + solve(depth -1);
+        }
+        return solve(depth);
+        //return Math.pow(2, Math.pow(4, depth));
+    },
+    drawFromCode : function(code, x, y, radius, angle){
+        var max_bit = 0;
+        if(typeof code == 'string' && code.length){
+            while(code.length <= this.getBitSize(max_bit)){
+                max_bit++;
+            }
+            max_bit--;
+            if(max_bit<0) return; // Draw no triangles
+        }else{
+            return;
+        }
+        var bit_size = this.getBitSize(max_bit);
+        function drawTriangle(code, bit_size){
+            if(bit_size == 4){
+
+            }
+        }
+    },
+    /*/
     draw: function(){
         resizeCanvas(this.settings.width, this.settings.height, true);
         background(255);
@@ -43,7 +92,7 @@ var TriangleFractalGenerator = new Generator({
             if(Array.isArray(this.settings.stroke)) stroke(this.settings.stroke[0],this.settings.stroke[1],this.settings.stroke[2],typeof this.settings.stroke[3] == 'number'?this.settings.stroke[3]:255);
             else stroke(this.settings.stroke);
         }
-        this.drawFractal(this.settings.max_iters, this.settings.x, this.settings.y, this.settings.radius, this.settings.angle);
+        this.drawFractal(this.settings.max_iters, this.settings.x, this.settings.y, this.settings.radius, this.settings.angle*PI*2);
     },
     drawFractal: function(iter, x, y, radius, angle){
         if(this.settings.max_iters < 0) return;

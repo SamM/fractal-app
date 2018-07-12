@@ -15,7 +15,8 @@ var TreeFractal = new Generator({
         angle: 0,
         x: 0,
         y: 0,
-        unit: 50
+        unit: 50,
+        file_name: "My Fractal"
     },
     setup: function(){
         createCanvas(this.get('width'), this.get('height'));
@@ -31,7 +32,24 @@ var TreeFractal = new Generator({
         params.number('scale', -2, 2, 0.05);
         params.number('spread', 0, 1, 0.01);
         params.number('max_iters', 1, 20, 1);
-        this.gui.onSet(function(){
+        params.string('file_name', 1, 128);
+        params.button('Save Image as PNG', function(){
+            var fileName = generator.settings.file_name;
+            var canvas = document.querySelector('.p5Canvas');
+            if(!canvas){
+                alert('There is no canvas image to save.');
+                return;
+            }
+            if(typeof savePNGImage !== 'function'){
+                throw new Error('savePNGImage.js file has not been imported');
+            }
+            savePNGImage(canvas, fileName).then(function(path){
+                alert('Successfully saved to this path:\n'+path+'\n\nPress [ Esc ] to exit...')
+            }).catch(function(){
+                alert('OH NO! There was an error when saving the image at the path you specified. You might not have permission to write here, or the directory might not exist.\nPlease try another path and/or filename when saving again.\n\nPress [ Esc ] to exit...')
+            });
+        });
+        this.onSet(function(){
             redraw();
         })
         redraw();

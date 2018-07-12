@@ -70,6 +70,7 @@
         }
     </style>
     <script src="libs/p5.min.js"></script>
+    <script src="libs/savePNGImage.js"></script>
     <script src="Generator.js"></script>
 </head>
 <body>
@@ -114,6 +115,12 @@
         
 
         function setup(){
+            document.addEventListener('dblclick', function(){
+                var canvas = document.querySelector('.p5Canvas');
+                if(canvas){
+                    window.location = canvas.toDataURL("image/png");
+                }
+            });
             generators[generator].setup();
             if(!generators[generator].gui.constructed) generators[generator].gui.construct(document.body);
             var canvas = document.querySelector('.p5Canvas');

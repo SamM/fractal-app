@@ -8,16 +8,32 @@ function Generator(options){
         generator[attr] = options[attr];
     });
 
-    this.onSet = [];
+    this.onSetters = [];
+
     this.set = function(name, value){
         this.settings[name] = value;
-        this.onSet.forEach(function(onSet){
+        this.onSetters.forEach(function(onSet){
             if(typeof onSet == 'function'){
                 onSet.call(generator, name, value);
             }
         })
         return generator;
     };
+
+    this.onSet = function(fn, remove){
+        if(typeof fn == 'function'){
+            if(remove){
+                var i = this.onSetters.indexOf(fn);
+                if(i > -1){
+                    this.onSetters.splice(i,1);
+                }   
+            }else{
+                this.onSetters.push(fn);
+            }
+
+        }
+        return this;
+    }
     this.get = function(name){
         return this.settings[name];
     }
@@ -29,14 +45,25 @@ function Generator(options){
         }
         return generator.gui;
     }
+    this.gui.onSetters = [];
     this.gui.constructed = false;
     this.gui.element = null;
-    this.gui.construct = function(parent){
+    this.gui.construct = function(parent, reconstruct){
         if(this.constructed){
-            this.destruct();
+            if(reconstruct){
+                var div = document.createElement('div');
+                parent = this.element.parentNode;
+                parent.replaceChild(div, this.element);
+                this.destruct();
+                this.element = div;
+            }else{
+                this.destruct();
+                this.element = document.createElement('div');
+            }
+        }else{
+            this.element = document.createElement('div');
         }
         var gui = this;
-        this.element = document.createElement('div');
         this.element.className = 'gui';
         this.element.style.position = 'relative';
 
@@ -80,29 +107,305 @@ function Generator(options){
         generator.interface.forEach(function(section){
             section.destruct();
         });
+        this.onSetters = [];
         this.constructed = false;
     }
     this.gui.onSet = function(fn, remove){
         if(typeof fn == 'function'){
             if(remove){
-                var i = generator.onSet.indexOf(fn);
+                var i = this.onSetters.indexOf(fn);
                 if(i > -1){
-                    generator.splice(i,1);
+                    this.onSetters.splice(i,1);
                 }   
             }else{
-                generator.onSet.push(fn);
+                this.onSetters.push(fn);
             }
-
         }
-        return generator.gui;
+        return this;
     }
     this.gui.section = function(name){
+        var gui = this;
         var Section = function(name){
             this.name = name;
             this.components = [];
             this.element = null;
+            this.onSetters = [];
         }
+        Section.prototype.static = function(setting_name, formatter){
+            var section = this;
+            var StaticComponent = function(name, formatter){
+                this.name = name;
+                this.formatter = typeof formatter == 'function' ? formatter : function(a){ return a; };
+                this.onSetters = [];
+            }
+            StaticComponent.prototype.constructed = false;
+            StaticComponent.prototype.destruct = function(){
+                if(this.element && this.element.parentNode){
+                    this.element.parentNode.removeChild(this.element);
+                }
+                this.element = null;
+                this.constructed = false;
+                this.onSetters = [];
+            }
+            StaticComponent.prototype.onSet = function(fn, remove){
+                if(typeof fn == 'function'){
+                    if(remove){
+                        var i = this.onSetters.indexOf(fn);
+                        if(i > -1){
+                            this.onSetters.splice(i,1);
+                        }   
+                    }else{
+                        this.onSetters.push(fn);
+                    }
+        
+                }
+                return this;
+            }
+            StaticComponent.prototype.set = function(value){
+                var component = this;
+                this.onSetters.forEach(function(fn){
+                    fn.call(component, value);
+                })
+                section.set(this, value);
+                return this;
+            }
+            StaticComponent.prototype.construct = function(parent, reconstruct){
+                if(this.constructed){
+                    if(reconstruct){
+                        var el = document.createElement('li');
+                        parent = this.element.parentNode;
+                        parent.replaceChild(el, this.element);
+                        this.destruct();
+                        this.element = el;
+                    }else{
+                        this.destruct();
+                        this.element = document.createElement('li');
+                    }
+                }else{
+                    this.element = document.createElement('li');
+                }
+                this.element.style.listStyle = "none";
+                this.element.style.margin = "0";
+                this.element.style.padding = "0";
+                this.element.style.display = "block";
+                this.element.style.position = "relative";
+                this.element.style.height = '50px';
+                this.element.className = 'gui-component static-component';
+                var label = document.createElement('label');
+                label.style.position = 'absolute';
+                label.style.left = '0';
+                label.style.width = '40%';
+                label.style.height = '100%';
+                label.innerText = this.name;
+                label.style.fontWeight = "bold";
+                label.className = "gui-label";
+                this.element.appendChild(label);
+                var value = document.createElement('div');
+                value.style.position = 'absolute';
+                value.style.right = '0';
+                value.style.width = '60%';
+                value.style.height = '100%';
+                value.className = 'gui-static-value';
+                value.innerText = this.formatter(generator.get(this.name));
+                this.element.appendChild(value);
+
+                if(typeof parent == "object" && parent.appendChild){
+                    parent.appendChild(this.element);
+                }
+                return this.element;
+            }
+            var component = new StaticComponent(setting_name, formatter);
+            this.components.push(component)
+            return component;
+        };
+        Section.prototype.string = function(setting_name, min, max, formatter){
+            var section = this;
+            var StringComponent = function(name, min, max, formatter){
+                this.name = name;
+                this.min = typeof min == 'number' ? min >= 0 ? min : 0 : 0;
+                this.max = typeof max == 'number' ? max > 0 ? max : 1 : 64;
+                this.formatter = typeof formatter == 'function' ? formatter : function(a){ return a; };
+                this.onSetters = [];
+            }
+            StringComponent.prototype.constructed = false;
+            StringComponent.prototype.destruct = function(){
+                if(this.element && this.element.parentNode){
+                    this.element.parentNode.removeChild(this.element);
+                }
+                this.element = null;
+                this.constructed = false;
+                this.onSetters = [];
+            }
+            StringComponent.prototype.onSet = function(fn, remove){
+                if(typeof fn == 'function'){
+                    if(remove){
+                        var i = this.onSetters.indexOf(fn);
+                        if(i > -1){
+                            this.onSetters.splice(i,1);
+                        }   
+                    }else{
+                        this.onSetters.push(fn);
+                    }
+        
+                }
+                return this;
+            }
+            StringComponent.prototype.set = function(value){
+                var component = this;
+                this.onSetters.forEach(function(fn){
+                    fn.call(component, value);
+                })
+                section.set(this, value);
+                return this;
+            }
+            StringComponent.prototype.construct = function(parent, reconstruct){
+                if(this.constructed){
+                    if(reconstruct){
+                        var el = document.createElement('li');
+                        parent = this.element.parentNode;
+                        parent.replaceChild(el, this.element);
+                        this.destruct();
+                        this.element = el;
+                    }else{
+                        this.destruct();
+                        this.element = document.createElement('li');
+                    }
+                }else{
+                    this.element = document.createElement('li');
+                }
+                this.element.style.listStyle = "none";
+                this.element.style.margin = "0";
+                this.element.style.padding = "0";
+                this.element.style.display = "block";
+                this.element.style.position = "relative";
+                this.element.style.height = '50px';
+                this.element.className = 'gui-component static-component';
+                var label = document.createElement('label');
+                label.style.position = 'absolute';
+                label.style.left = '0';
+                label.style.width = '40%';
+                label.style.height = '100%';
+                label.innerText = this.name;
+                label.style.fontWeight = "bold";
+                label.className = "gui-label";
+                this.element.appendChild(label);
+                var value = document.createElement('input');
+                value.type = 'text';
+                value.style.position = 'absolute';
+                value.style.right = '0';
+                value.style.width = '60%';
+                value.style.height = '100%';
+                value.className = 'gui-input';
+                value.value = this.formatter(generator.get(component.name));
+                this.element.appendChild(value);
+
+                value.addEventListener('change', function(e){
+                    var min = component.min;
+                    var max = component.max;
+                    var str = value.value;
+                    if((str.length < min)||(str.length > max)){
+                        value.value = generator.get(component.name);
+                        return;
+                    }
+                    str = component.formatter(str);
+                    component.set(str);
+                })
+
+                if(typeof parent == "object" && parent.appendChild){
+                    parent.appendChild(this.element);
+                }
+                return this.element;
+            }
+            var component = new StringComponent(setting_name, min, max, formatter);
+            this.components.push(component)
+            return component;
+        };
+        Section.prototype.button = function(buttonText, onClick){
+            var section = this;
+            var ButtonComponent = function(name, onClick){
+                this.name = name;
+                this.onClick = typeof onClick == 'function' ? onClick : function(a){ return a; };
+                this.onSetters = [];
+            }
+            ButtonComponent.prototype.constructed = false;
+            ButtonComponent.prototype.destruct = function(){
+                if(this.element && this.element.parentNode){
+                    this.element.parentNode.removeChild(this.element);
+                }
+                this.element = null;
+                this.constructed = false;
+                this.onSetters = [];
+            }
+            ButtonComponent.prototype.onSet = function(fn, remove){
+                if(typeof fn == 'function'){
+                    if(remove){
+                        var i = this.onSetters.indexOf(fn);
+                        if(i > -1){
+                            this.onSetters.splice(i,1);
+                        }   
+                    }else{
+                        this.onSetters.push(fn);
+                    }
+        
+                }
+                return this;
+            }
+            ButtonComponent.prototype.set = function(){
+                var component = this;
+                this.onSetters.forEach(function(fn){
+                    fn.call(component);
+                })
+                return this;
+            }
+            ButtonComponent.prototype.construct = function(parent, reconstruct){
+                if(this.constructed){
+                    if(reconstruct){
+                        var el = document.createElement('li');
+                        parent = this.element.parentNode;
+                        parent.replaceChild(el, this.element);
+                        this.destruct();
+                        this.element = el;
+                    }else{
+                        this.destruct();
+                        this.element = document.createElement('li');
+                    }
+                }else{
+                    this.element = document.createElement('li');
+                }
+                this.element.style.listStyle = "none";
+                this.element.style.margin = "0";
+                this.element.style.padding = "0";
+                this.element.style.display = "block";
+                this.element.style.position = "relative";
+                this.element.style.height = '50px';
+                this.element.className = 'gui-component static-component';
+                var button = document.createElement('button');
+                button.style.position = 'absolute';
+                button.style.left = '0';
+                button.style.right = '0';
+                button.style.width = 'auto';
+                button.style.height = '100%';
+                button.innerText = this.name;
+                button.style.fontWeight = "bold";
+                button.className = "gui-button";
+                this.element.appendChild(button);
+
+                button.addEventListener('click', function(e){
+                    component.onClick();
+                    component.set();
+                })
+
+                if(typeof parent == "object" && parent.appendChild){
+                    parent.appendChild(this.element);
+                }
+                return this.element;
+            }
+            var component = new ButtonComponent(buttonText, onClick);
+            this.components.push(component)
+            return component;
+        };
         Section.prototype.number = function(setting_name, min, max, increment){
+            var section = this;
             var NumberComponent = function(name, min, max, increment){
                 this.name = name;
                 this.min = typeof min == 'string' ? min: typeof min == 'number' ? min : 0;
@@ -111,12 +414,25 @@ function Generator(options){
                 distance = Math.abs(distance);
                 this.increment = typeof increment == 'number' ? Math.abs(increment) < distance ? Math.abs(increment) : distance : 1;
                 this.element = null;
+                this.onSetters = [];
             }
             NumberComponent.prototype.constructed = false;
-            NumberComponent.prototype.construct = function(parent){
-                this.destruct();
+            NumberComponent.prototype.construct = function(parent, reconstruct){
+                if(this.constructed){
+                    if(reconstruct){
+                        var el = document.createElement('li');
+                        parent = this.element.parentNode;
+                        parent.replaceChild(el, this.element);
+                        this.destruct();
+                        this.element = el;
+                    }else{
+                        this.destruct();
+                        this.element = document.createElement('li');
+                    }
+                }else{
+                    this.element = document.createElement('li');
+                }
                 var component = this;
-                this.element = document.createElement('li');
                 this.element.style.listStyle = "none";
                 this.element.style.margin = "0";
                 this.element.style.padding = "0";
@@ -243,7 +559,7 @@ function Generator(options){
                         num = max;
                         value.value = num;
                     }
-                    generator.set(component.name, num);
+                    component.set(num);
                     var percentage = valueToPercentage(num);
                     bar.style.width = percentage+"%";
                 })
@@ -259,7 +575,7 @@ function Generator(options){
                     var percentage = (x/width)*100;
                     var newValue = percentageToValue(percentage);
                     value.value = newValue;
-                    generator.set(component.name, newValue);
+                    component.set(newValue);
                     bar.style.width = percentage+"%";
                 });
                 function getAbsolutePosition(element) {
@@ -280,7 +596,7 @@ function Generator(options){
                         var newValue = percentageToValue(percentage);
                         if(newValue != generator.get(component.name)){
                             value.value = newValue;
-                            generator.set(component.name, newValue);
+                            component.set(newValue);
                         }
                         bar.style.width = percentage+"%";
                     }
@@ -303,15 +619,51 @@ function Generator(options){
                 if(this.onMouseUp) document.removeEventListener('mouseup', this.onMouseUp);
                 this.element = null;
                 this.constructed = false;
+                this.onSetters = [];
+            }
+            NumberComponent.prototype.onSet = function(fn, remove){
+                if(typeof fn == 'function'){
+                    if(remove){
+                        var i = this.onSetters.indexOf(fn);
+                        if(i > -1){
+                            this.onSetters.splice(i,1);
+                        }   
+                    }else{
+                        this.onSetters.push(fn);
+                    }
+        
+                }
+                return this;
+            }
+            NumberComponent.prototype.set = function(value){
+                var component = this;
+                this.onSetters.forEach(function(fn){
+                    fn.call(component, value);
+                })
+                section.set(this, value);
+                return this;
             }
             var component = new NumberComponent(setting_name, min, max, increment);
             this.components.push(component)
+            return component;
         }
         Section.prototype.constructed = false;
-        Section.prototype.construct = function(parent){
-            this.destruct();
+        Section.prototype.construct = function(parent, reconstruct){
+            if(this.constructed){
+                if(reconstruct){
+                    var el = document.createElement('ul');
+                    parent = this.element.parentNode;
+                    parent.replaceChild(el, this.element);
+                    this.destruct();
+                    this.element = el;
+                }else{
+                    this.destruct();
+                    this.element = document.createElement('ul');
+                }
+            }else{
+                this.element = document.createElement('ul');
+            }
             var section = this;
-            this.element = document.createElement('ul');
             this.element.style.listStyle = "none";
             this.element.style.margin = "0";
             this.element.style.padding = "0";
@@ -334,11 +686,43 @@ function Generator(options){
             }
             this.element = null;
             this.constructed = false;
+            this.onSetters = [];
+        }
+        Section.prototype.onSet = function(fn, remove){
+            if(typeof fn == 'function'){
+                if(remove){
+                    var i = this.onSetters.indexOf(fn);
+                    if(i > -1){
+                        this.onSetters.splice(i,1);
+                    }   
+                }else{
+                    this.onSetters.push(fn);
+                }
+    
+            }
+            return this;
+        };
+        Section.prototype.set = function(component, value){
+            var section = this;
+            this.onSetters.forEach(function(fn){
+                fn.call(section, component, value);
+            })
+            gui.set(this, component, value);
+            return this;
         }
         var section = new Section(name);
         generator.interface.push(section);
         return section;
     };
+
+    this.gui.set = function(section, component, value){
+        var gui = this;
+        this.onSetters.forEach(function(fn){
+            fn.call(gui, section, component, value);
+        })
+        generator.set(component.name, value);
+        return this;
+    }
 }
 
 if(typeof module == 'object'){
