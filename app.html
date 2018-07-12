@@ -82,6 +82,7 @@
         var generators = {};
 
         generators.TreeFractal = require('./generators/TreeFractal');
+        generators.TriangleFractal = require('./generators/TriangleFractal');
         
         var generatorEl = document.querySelector('#generator');
         
@@ -102,6 +103,7 @@
             generators[generator].setup();
             if(!generators[generator].gui.constructed) generators[generator].gui.construct(document.body);
             var canvas = document.querySelector('.p5Canvas');
+            console.log(canvas);
             if(canvas){
                 var screen = document.querySelector('#screen');
                 screen.appendChild(canvas);

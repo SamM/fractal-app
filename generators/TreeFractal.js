@@ -5,8 +5,8 @@ if(typeof Generator != 'function' && typeof require == 'function'){
 
 var TreeFractal = new Generator({
     settings: {
-        width: 720,
-        height: 720,
+        width: 1000,
+        height: 1000,
         max_iters: 5,
         spread: 0.1,
         color: '#ff0000',
@@ -20,6 +20,7 @@ var TreeFractal = new Generator({
     setup: function(){
         createCanvas(this.get('width'), this.get('height'));
         noLoop();
+        if(this.gui.constructed) this.gui.destroy();
         var params = this.gui.section('Params');
         params.number('width', 10, 4000, 1)
         params.number('height', 10, 4000, 1)
@@ -33,28 +34,29 @@ var TreeFractal = new Generator({
         this.gui.onSet(function(){
             redraw();
         })
+        redraw();
         //params.color('color');
     },
     draw: function(){
-        resizeCanvas(this.get('width'), this.get('height'), true);
+        resizeCanvas(this.settings.width, this.settings.height, true);
         background(255);
-        translate(this.get('width')/2, this.get('height')/2);
+        translate(this.settings.width/2, this.settings.height/2);
         rotate(-PI / 2.0);
-        let start_angle = this.get('angle') * PI * 2;
+        let start_angle = this.settings.angle * PI * 2;
         // Switch x and y and invert y here because we rotate and it inverts the axii
-        this.branch(this.get('max_iters'), - this.get('y'), this.get('x'), start_angle, this.get('unit') * this.get('scale'));
+        this.branch(this.settings.max_iters, - this.settings.y, this.settings.x, start_angle, this.settings.unit * this.settings.scale);
     },
     branch: function(iter, x , y, angle, scale)
     {
-        let progress = 1-iter/this.get('max_iters');//0 to 1
+        let progress = 1-iter/this.settings.max_iters;//0 to 1
         if(iter>0)
         {
-            stroke(lerpColor(color(this.get('color')), color(255), progress));
+            stroke(lerpColor(color(this.settings.color), color(255), progress));
             strokeWeight(2*(1-progress));
     
             //draw the symmetric lines each iteration
             //instead of starting the recursion multiple times
-            var branches = this.get('branches');
+            var branches = this.settings.branches;
             for(let i = 0; i<branches; i++){
               let symmetry_angle = i * ((PI*2)/branches);
               let a = atan2(y,x)+symmetry_angle;
@@ -69,9 +71,9 @@ var TreeFractal = new Generator({
             //calculate next iteration params
             var newX = x + scale*cos(angle);
             var newY = y + scale*sin(angle);
-            var newScale = scale * this.get('scale');
-            var newAngle1 = angle - (this.get('spread') * PI);
-            var newAngle2 = angle + (this.get('spread') * PI);
+            var newScale = scale * this.settings.scale;
+            var newAngle1 = angle - (this.settings.spread * PI);
+            var newAngle2 = angle + (this.settings.spread * PI);
             //recursive calls
             this.branch(iter-1, newX, newY, newAngle1, newScale);
             this.branch(iter-1, newX, newY, newAngle2, newScale);

@@ -2,27 +2,8 @@ const {app, BrowserWindow, Menu, ipcMain} = require('electron')
 
 let treeWin = null, appWin = null;
 
-function createTreeFractalWindow () {
-	// Create the browser window.
-	treeWin = new BrowserWindow({width: 500, height: 500})
-
-	// and load the index.html of the app.
-	treeWin.loadFile('./tree-fractal.html')
-
-	// Open the DevTools.
-	//treeWin.webContents.openDevTools()
-
-	// Emitted when the window is closed.
-	treeWin.on('closed', () => {
-		// Dereference the window object, usually you would store windows
-		// in an array if your app supports multi windows, this is the time
-		// when you should delete the corresponding element.
-		treeWin = null
-	})
-}
-
 function createAppWindow(){
-	appWin = new BrowserWindow({width: 1000, height: 750})
+	appWin = new BrowserWindow({width: 1000, height: 1050})
 	appWin.loadFile('./app.html')
 	appWin.on('closed', () => {
 		appWin = null
