@@ -197,7 +197,16 @@ function Generator(options){
                     value = value + min;
                     if(value<min) value = min;
                     if(value>max) value = max;
-                    return value;
+                    var trim = value.toString()
+                    var point = trim.indexOf('.');
+                    if(point >-1){
+                        trim = trim.replace(/0{5,}[0-9]+$/, '');
+                        if(trim.search(/9{5,}[0-9]*$/)>-1){
+                            trim = trim.replace(/9{5,}[0-9]*$/, '');
+                            trim = trim.slice(0,-1) + (parseInt(trim.slice(-1))+1);
+                        }
+                    }
+                    return parseFloat(trim);
                 }
 
                 var bar = document.createElement('div');
@@ -269,8 +278,10 @@ function Generator(options){
                         var width = slider.clientWidth;
                         var percentage = (x/width)*100;
                         var newValue = percentageToValue(percentage);
-                        value.value = newValue;
-                        generator.set(component.name, newValue);
+                        if(newValue != generator.get(component.name)){
+                            value.value = newValue;
+                            generator.set(component.name, newValue);
+                        }
                         bar.style.width = percentage+"%";
                     }
                 })
