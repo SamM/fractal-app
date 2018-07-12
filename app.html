@@ -98,10 +98,11 @@
         
         function onGeneratorChange(){
             if(generator){
-                generators[generator].gui.destruct();
-            };
+                generators[generator].gui.hide();
+            }
             generator = generatorEl.options[generatorEl.selectedIndex].value;
             generators[generator].setup();
+            generators[generator].gui.show();
             if(!generators[generator].gui.constructed) generators[generator].gui.construct(document.body);
             var canvas = document.querySelector('.p5Canvas');
             console.log(canvas);

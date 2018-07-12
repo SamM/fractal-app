@@ -99,6 +99,16 @@ function Generator(options){
         }
         return this.element;
     }
+    this.gui.show = function(display){ 
+        if(!this.element) return this;
+        this.element.style.display = display?display:"block"; 
+        return this; 
+    }
+    this.gui.hide = function(){ 
+        if(!this.element) return this;
+        this.element.style.display = "none"; 
+        return this; 
+    }
     this.gui.destruct = function(){
         if(!this.constructed) return;
         if(this.element && this.element.parentNode){
