@@ -72,6 +72,13 @@
     <script src="libs/p5.min.js"></script>
     <script src="libs/savePNGImage.js"></script>
     <script src="Generator.js"></script>
+    <script src="gui/GeneratorGui.js"></script>
+    <script src="gui/Section.js"></script>
+    <script src="gui/ComponentBase.js"></script>
+    <script src="gui/ButtonComponent.js"></script>
+    <script src="gui/NumberComponent.js"></script>
+    <script src="gui/StaticComponent.js"></script>
+    <script src="gui/StringComponent.js"></script>
 </head>
 <body>
     <div id="screen"></div>
@@ -84,9 +91,9 @@
 
         generators.TreeFractal = require('./generators/TreeFractal');
         generators.TriangleFractal = require('./generators/TriangleFractal');
-        
+
         var generatorEl = document.querySelector('#generator');
-        
+
         Object.keys(generators).forEach(function(name){
             var option = document.createElement('option');
             option.value = name;
@@ -95,7 +102,7 @@
         });
 
         var generator = generatorEl.options[generatorEl.selectedIndex].value;
-        
+
         function onGeneratorChange(){
             if(generator){
                 generators[generator].gui.hide();
@@ -113,7 +120,7 @@
             }
         }
         generatorEl.addEventListener('change', onGeneratorChange);
-        
+
 
         function setup(){
             document.addEventListener('dblclick', function(){
@@ -135,7 +142,7 @@
         function draw(){
             generators[generator].draw();
         }
-        
+
     </script>
 </body>
 </html>
