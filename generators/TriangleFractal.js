@@ -35,22 +35,7 @@ var TriangleFractalGenerator = new Generator({
             params.number('delete_chance', 0, 1, 0.01);
             params.number('max_iters', 1, 12, 1);
             params.string('file_name', 1, 128);
-            params.button('Save Image as PNG', function(){
-                var fileName = generator.settings.file_name;
-                var canvas = document.querySelector('.p5Canvas');
-                if(!canvas){
-                    alert('There is no canvas image to save.');
-                    return;
-                }
-                if(typeof savePNGImage !== 'function'){
-                    throw new Error('savePNGImage.js file has not been imported');
-                }
-                savePNGImage(canvas, fileName).then(function(path){
-                    alert('Successfully saved to this path:\n'+path+'\n\nPress [ Esc ] to exit...')
-                }).catch(function(){
-                    alert('OH NO! There was an error when saving the image at the path you specified. You might not have permission to write here, or the directory might not exist.\nPlease try another path and/or filename when saving again.\n\nPress [ Esc ] to exit...')
-                });
-            });
+            params.button('Save Image as PNG', this.saveImage);
             this.onSet(function(){
                 redraw();
             })
@@ -59,7 +44,7 @@ var TriangleFractalGenerator = new Generator({
         redraw();
     },
     /*/
-    /// Fore-shadowing... 
+    /// Fore-shadowing...
     ...
     getBitSize: function(depth){
         function solve(depth){
@@ -124,7 +109,7 @@ var TriangleFractalGenerator = new Generator({
                 x+(radius*cos(angle)), y+(radius*sin(angle)),
                 x+(radius*cos(angle+third)), y+(radius*sin(angle+third)),
                 x+(radius*cos(angle+third+third)), y+(radius*sin(angle+third+third))
-            );   
+            );
 
             var r = radius/2;
             this.drawFractal(iter-1, x+(r*cos(angle)), y+(r*sin(angle)), r, angle);
