@@ -203,9 +203,12 @@ class NumberComponent extends ComponentBase
     document.addEventListener('mouseup', this.onMouseUp);
 
 
-    if(typeof parent == "object" && parent.appendChild){
+    if(!reconstruct && typeof parent == "object" && parent.appendChild){
         parent.appendChild(this.element);
     }
+
+    this.constructed = true;
+
     return this.element;
 }
 

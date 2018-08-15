@@ -43,13 +43,16 @@ class ButtonComponent extends ComponentBase
 
     var component = this;
     button.addEventListener('click', function(e){
-        component.onClick();
+        component.onClick.call(component.section.generator);
         component.set();
     })
 
-    if(typeof parent == "object" && parent.appendChild){
+    if(!reconstruct && typeof parent == "object" && parent.appendChild){
         parent.appendChild(this.element);
     }
+
+    this.constructed = true;
+
     return this.element;
   }
 }

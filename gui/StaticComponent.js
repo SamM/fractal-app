@@ -46,9 +46,11 @@ class StaticComponent extends ComponentBase
       value.innerText = this.formatter(this.section.generator.get(this.name));
       this.element.appendChild(value);
 
-      if(typeof parent == "object" && parent.appendChild){
+      if(!reconstruct && typeof parent == "object" && parent.appendChild){
           parent.appendChild(this.element);
       }
+
+      this.constructed = true;
       return this.element;
   }
 }
