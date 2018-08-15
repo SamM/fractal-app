@@ -13,10 +13,8 @@ class Generator
       });
 
       this.onSetters = [];
-      this.interface = [];
 
       this.gui = new GeneratorGui(this);
-      this.gui.section('params_section');
 
     }
 
@@ -29,8 +27,8 @@ class Generator
       //override this
     }*/
 
-    saveImage(){
-        let fileName = 'export';//TODO: display a save file dialog so user can choose name
+    saveImage(fileName){
+        fileName = !fileName? 'export':fileName;//TODO: display a save file dialog so user can choose name
         var canvas = document.querySelector('.p5Canvas');
         if(!canvas){
             alert('There is no canvas image to save.');

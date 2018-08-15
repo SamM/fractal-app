@@ -16,7 +16,9 @@ var TriangleFractalGenerator = new Generator({
         stroke: false,
         colors: [],
         background_color: "#FFFFFF",
-        file_name: "My Fractal"
+        file_name: "My Fractal",
+        pattern: '',
+        hide_base: false
     },
     setup: function(){
         var generator = this;
@@ -24,6 +26,7 @@ var TriangleFractalGenerator = new Generator({
         if(this.gui.constructed){
             this.gui.construct(false, true);
         }else{
+            this.randomizePattern();
             var params = this.gui.section('params');
             params.number('width', 10, 4000, 1)
             params.number('height', 10, 4000, 1)
@@ -34,45 +37,50 @@ var TriangleFractalGenerator = new Generator({
             params.number('radius', 1, 'width', 1);
             params.number('delete_chance', 0, 1, 0.01);
             params.number('max_iters', 1, 12, 1);
+            params.string('pattern', 0, 4000);
+            params.button('Randomize Pattern', this.randomizePattern);
+            params.button('Toggle Base Visibility', function(){
+                if(generator.get('hide_base')){
+                    generator.set('hide_base', false);
+                }else{
+                    generator.set('hide_base', true);
+                }
+            })
+            params.button('Randomize Colors', this.randomizeColors);
             params.string('file_name', 1, 128);
-            params.button('Save Image as PNG', this.saveImage);
+            params.button('Save Image as PNG', function(){ generator.saveImage(generator.settings.file_name); });
             this.onSet(function(){
                 redraw();
-            })
+            });
         }
         noLoop();
         redraw();
     },
-    /*/
-    /// Fore-shadowing...
-    ...
-    getBitSize: function(depth){
-        function solve(depth){
-            if(depth < 0) return 0;
-            return Math.pow(4, depth) + solve(depth -1);
+    randomizeColors: function(){
+        var generator = this;
+        var colors = [];
+        for(var i=0; i<12; i++){
+            colors.push(this.randomRGBA());
         }
-        return solve(depth);
-        //return Math.pow(2, Math.pow(4, depth));
+        generator.set('colors', colors);
     },
-    drawFromCode : function(code, x, y, radius, angle){
-        var max_bit = 0;
-        if(typeof code == 'string' && code.length){
-            while(code.length <= this.getBitSize(max_bit)){
-                max_bit++;
-            }
-            max_bit--;
-            if(max_bit<0) return; // Draw no triangles
-        }else{
-            return;
+    randomizePattern: function(){
+        var generator = this;
+        var pattern = '';
+        var length = Math.ceil(Math.random()*10);
+        for(var i=0; i<length; i++){
+            pattern += Math.random()<generator.settings.delete_chance ? '0' : '1';
+            pattern += Math.random()<generator.settings.delete_chance ? '0' : '1';
+            pattern += Math.random()<generator.settings.delete_chance ? '0' : '1';
+            pattern += Math.random()<generator.settings.delete_chance ? '0' : '1';
         }
-        var bit_size = this.getBitSize(max_bit);
-        function drawTriangle(code, bit_size){
-            if(bit_size == 4){
-
-            }
+        generator.set('pattern', pattern);
+        var params = generator.gui.select['params'];
+        if(params){
+            params.select['pattern'].update();
         }
+        
     },
-    /*/
     draw: function(){
         resizeCanvas(this.settings.width, this.settings.height, true);
         background(this.settings.background_color);
@@ -82,6 +90,7 @@ var TriangleFractalGenerator = new Generator({
             if(Array.isArray(this.settings.stroke)) stroke(this.settings.stroke[0],this.settings.stroke[1],this.settings.stroke[2],typeof this.settings.stroke[3] == 'number'?this.settings.stroke[3]:255);
             else stroke(this.settings.stroke);
         }
+        this.index = 0;
         this.drawFractal(this.settings.max_iters, this.settings.x, this.settings.y, this.settings.radius, this.settings.angle*PI*2);
     },
     drawFractal: function(iter, x, y, radius, angle, no_stroke){
@@ -90,9 +99,7 @@ var TriangleFractalGenerator = new Generator({
         var progress = 1-(iter/max_iter);
         if(iter>0){
 
-            if(progress > 0 && Math.random() < this.settings.delete_chance) return;
-
-            strokeWeight(1);
+            strokeWeight(progress);
 
             var third = 2*PI/3;
 
@@ -105,17 +112,24 @@ var TriangleFractalGenerator = new Generator({
                 if(!this.settings.stroke) stroke(color);
                 fill(color);
             }
-            triangle(
-                x+(radius*cos(angle)), y+(radius*sin(angle)),
-                x+(radius*cos(angle+third)), y+(radius*sin(angle+third)),
-                x+(radius*cos(angle+third+third)), y+(radius*sin(angle+third+third))
-            );
+
+            if((progress == 0 && !this.settings.hide_base) || (progress !== 0 && this.settings.pattern[this.index%(this.settings.pattern.length+1)] == "1")){
+                triangle(
+                    x+(radius*cos(angle)), y+(radius*sin(angle)),
+                    x+(radius*cos(angle+third)), y+(radius*sin(angle+third)),
+                    x+(radius*cos(angle+third+third)), y+(radius*sin(angle+third+third))
+                );
+            }
+
+            this.index++;
 
             var r = radius/2;
             this.drawFractal(iter-1, x+(r*cos(angle)), y+(r*sin(angle)), r, angle);
             this.drawFractal(iter-1, x+(r*cos(angle+third)), y+(r*sin(angle+third)), r, angle);
             this.drawFractal(iter-1, x+(r*cos(angle+third+third)), y+(r*sin(angle+third+third)), r, angle);
             this.drawFractal(iter-1, x, y, r, angle+PI, true);
+
+            
         }
 
     },

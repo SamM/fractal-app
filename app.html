@@ -123,12 +123,6 @@
 
 
         function setup(){
-            document.addEventListener('dblclick', function(){
-                var canvas = document.querySelector('.p5Canvas');
-                if(canvas){
-                    window.location = canvas.toDataURL("image/png");
-                }
-            });
             generators[generator].setup();
             if(!generators[generator].gui.constructed) generators[generator].gui.construct(document.body);
             var canvas = document.querySelector('.p5Canvas');

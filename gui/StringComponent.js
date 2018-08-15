@@ -64,10 +64,12 @@ class StringComponent extends ComponentBase
         component.set(str);
     })
 
-    if(typeof parent == "object" && parent.appendChild){
+    if(!reconstruct && typeof parent == "object" && parent.appendChild){
         parent.appendChild(this.element);
     }
+
+    this.constructed = true;
+
     return this.element;
   }
-
 }

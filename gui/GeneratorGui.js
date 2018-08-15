@@ -7,6 +7,8 @@ class GeneratorGui
     this.onSetters = [];
     this.constructed = false;
     this.element = null;
+    this.interface = [];
+    this.select = {};
   }
 
   construct(parent, reconstruct)
@@ -36,18 +38,18 @@ class GeneratorGui
       toggleButton.addEventListener('click', function(e){
           gui.open = !gui.open;
           if(gui.open){
-              gui.generator.interface.forEach(function(section){
+              gui.interface.forEach(function(section){
                   section.element.style.display = 'block';
               });
           }else{
-              gui.generator.interface.forEach(function(section){
+              gui.interface.forEach(function(section){
                   section.element.style.display = 'none';
               });
           }
       });
       this.element.appendChild(toggleButton);
 
-      this.generator.interface.forEach(function(section){
+      this.interface.forEach(function(section){
           section.construct(gui.element);
           section.element.style.display = 'none';
       });
@@ -76,6 +78,13 @@ class GeneratorGui
       return this;
   }
 
+  update(){
+      this.interface.forEach(function(section){
+          section.update();
+      })
+      return this;
+  }
+
   destruct()
   {
       if(!this.constructed)
@@ -83,7 +92,7 @@ class GeneratorGui
       if(this.element && this.element.parentNode){
           this.element.parentNode.removeChild(this.element);
       }
-      this.generator.interface.forEach(function(section){
+      this.interface.forEach(function(section){
           section.destruct();
       });
       this.onSetters = [];
@@ -117,7 +126,8 @@ class GeneratorGui
   section(name)
   {
     var section = new Section(name, this.generator);
-    this.generator.interface.push(section);
+    this.interface.push(section);
+    this.select[name] = section;
     return section;
   }
 }

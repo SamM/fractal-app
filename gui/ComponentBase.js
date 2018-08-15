@@ -49,6 +49,8 @@ class ComponentBase
     return this;
   }
 
-  
+  update(){
+    this.construct(false, true);
+  }
 
 }

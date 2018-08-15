@@ -7,12 +7,14 @@ class Section
         this.onSetters = [];
         this.generator = generator;
         this.constructed = false;
+        this.select = {};
     }
 
     static(setting_name, formatter){
         var section = this;
         var component = new StaticComponent(this, setting_name, formatter);
         this.components.push(component);
+        this.select[setting_name] = component;
         return component;
     }
 
@@ -20,6 +22,7 @@ class Section
         var section = this;
         var component = new StringComponent(this, setting_name, min, max, formatter);
         this.components.push(component);
+        this.select[setting_name] = component;
         return component;
     }
 
@@ -27,6 +30,7 @@ class Section
         var section = this;
         var component = new ButtonComponent(this, buttonText, onClick);
         this.components.push(component);
+        this.select[buttonText] = component;
         return component;
     }
 
@@ -34,6 +38,7 @@ class Section
         var section = this;
         var component = new NumberComponent(this, setting_name, min, max, increment);
         this.components.push(component);
+        this.select[setting_name] = component;
         return component;
     }
 
@@ -104,6 +109,13 @@ class Section
             fn.call(section, component, value);
         })
         this.generator.gui.set(this, component, value);
+        return this;
+    }
+
+    update(){
+        this.components.forEach(function(component){
+            component.update();
+        });
         return this;
     }
 
